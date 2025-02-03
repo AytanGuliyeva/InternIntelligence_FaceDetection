@@ -1,4 +1,4 @@
-package com.example.internintelligence_facedetection
+package com.example.internintelligence_facedetection.ui
 
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -116,8 +116,12 @@ class CameraFragment : Fragment() {
                     binding.tvDetectedFace.text = "Üz Tanındı: ${faces.size}"
                     val face = faces[0]
                     val boundingBox = face.boundingBox
+                    faces.forEachIndexed { index, face ->
+
+                        Log.d("TAGdetect", "Üz $index: Box = ${face.boundingBox}")
+                    }
                     val action = CameraFragmentDirections.actionCameraFragmentToResultFragment(
-                        //boundingBox.left, boundingBox.top, boundingBox.right, boundingBox.bottom
+                        "$boundingBox"
                     )
                     findNavController().navigate(action)
                 } else {

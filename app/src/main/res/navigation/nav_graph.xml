@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.example.internintelligence_facedetection.CameraFragment"
+        android:name="com.example.internintelligence_facedetection.ui.CameraFragment"
         android:label="fragment_camera"
         tools:layout="@layout/fragment_camera" >
         <action
@@ -18,21 +18,27 @@
     </fragment>
     <fragment
         android:id="@+id/faceDatabaseFragment"
-        android:name="com.example.internintelligence_facedetection.FaceDatabaseFragment"
+        android:name="com.example.internintelligence_facedetection.ui.FaceDatabaseFragment"
         android:label="fragment_face_database"
         tools:layout="@layout/fragment_face_database" />
     <fragment
         android:id="@+id/resultFragment"
-        android:name="com.example.internintelligence_facedetection.ResultFragment"
+        android:name="com.example.internintelligence_facedetection.ui.ResultFragment"
         android:label="fragment_result"
         tools:layout="@layout/fragment_result" >
         <action
             android:id="@+id/action_resultFragment_to_cameraFragment"
             app:destination="@id/cameraFragment"
             app:popUpTo="@id/resultFragment"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true"
+            />
         <action
             android:id="@+id/action_resultFragment_to_faceDatabaseFragment"
-            app:destination="@id/faceDatabaseFragment" />
+            app:destination="@id/faceDatabaseFragment"
+            />
+
+        <argument
+            android:name="isRecognized"
+            app:argType="string" />
     </fragment>
 </navigation>
