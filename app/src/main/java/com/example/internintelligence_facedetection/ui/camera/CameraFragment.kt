@@ -1,4 +1,4 @@
-package com.example.internintelligence_facedetection.ui
+package com.example.internintelligence_facedetection.ui.camera
 
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -14,11 +14,9 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.internintelligence_facedetection.databinding.FragmentCameraBinding
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.face.FaceDetection
-import com.google.mlkit.vision.face.FaceDetectorOptions
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -26,6 +24,7 @@ class CameraFragment : Fragment() {
     private lateinit var binding: FragmentCameraBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var previewView: PreviewView
+    private lateinit var cameraViewModel: CameraViewModel
 
     companion object {
         const val REQUEST_CODE_CAMERA = 100
@@ -41,6 +40,17 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        cameraViewModel = ViewModelProvider(this).get(CameraViewModel::class.java)
+
+        cameraViewModel.detectedFaceCount.observe(viewLifecycleOwner) { faceCount ->
+            binding.tvDetectedFace.text = faceCount
+        }
+
+        cameraViewModel.faceBoundingBox.observe(viewLifecycleOwner) { boundingBox ->
+            val action = CameraFragmentDirections.actionCameraFragmentToResultFragment(boundingBox)
+            findNavController().navigate(action)
+        }
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED) {
@@ -73,7 +83,7 @@ class CameraFragment : Fragment() {
                 .build()
 
             imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
-                analyzeImage(imageProxy)
+                cameraViewModel.analyzeImage(imageProxy)
             }
 
             cameraProvider.bindToLifecycle(
@@ -83,60 +93,6 @@ class CameraFragment : Fragment() {
                 imageAnalysis
             )
         }, ContextCompat.getMainExecutor(requireContext()))
-    }
-
-    @OptIn(ExperimentalGetImage::class)
-    private fun analyzeImage(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image
-        if (mediaImage != null) {
-            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-            detectFaces(image)
-            val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-            Log.d("TAGdetect", "Rotation dərəcəsi: $rotationDegrees")
-            Log.d("TAGdetect", "Görüntü alındı: ${mediaImage?.format}")
-        } else {
-            Log.e("TAGdetect", "Görüntü boşdur!")
-            imageProxy.close()
-        }
-    }
-
-
-    private fun detectFaces(image: InputImage) {
-
-        val detector = FaceDetection.getClient(
-            FaceDetectorOptions.Builder()
-                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                .build()
-        )
-
-
-        detector.process(image)
-            .addOnSuccessListener { faces ->
-                if (faces.isNotEmpty()) {
-                    binding.tvDetectedFace.text = "Üz Tanındı: ${faces.size}"
-                    val face = faces[0]
-                    val boundingBox = face.boundingBox
-                    faces.forEachIndexed { index, face ->
-
-                        Log.d("TAGdetect", "Üz $index: Box = ${face.boundingBox}")
-                    }
-                    val action = CameraFragmentDirections.actionCameraFragmentToResultFragment(
-                        "$boundingBox"
-                    )
-                    findNavController().navigate(action)
-                } else {
-                    binding.tvDetectedFace.text = "Üz tanınmır."
-                }
-                Log.d("TAGdetect", "Üzlər tapıldı: ${faces.size}")
-                faces.forEachIndexed { index, face ->
-
-                    Log.d("TAGdetect", "Üz $index: Box = ${face.boundingBox}")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("TAGdetect", "Üz tanıma xətası: ${e.message}")
-            }
-
     }
 
     override fun onDestroy() {
