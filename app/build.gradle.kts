@@ -42,6 +42,10 @@ android {
 }
 
 dependencies {
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
     //firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-analytics")

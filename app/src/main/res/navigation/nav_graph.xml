@@ -18,7 +18,7 @@
     </fragment>
     <fragment
         android:id="@+id/faceDatabaseFragment"
-        android:name="com.example.internintelligence_facedetection.ui.FaceDatabaseFragment"
+        android:name="com.example.internintelligence_facedetection.ui.faceDatabase.FaceDatabaseFragment"
         android:label="fragment_face_database"
         tools:layout="@layout/fragment_face_database" >
         <action
@@ -41,10 +41,14 @@
         <action
             android:id="@+id/action_resultFragment_to_faceDatabaseFragment"
             app:destination="@id/faceDatabaseFragment"
-            />
+            app:popUpTo="@id/resultFragment"
+            app:popUpToInclusive="true" />
 
         <argument
             android:name="boundingBox"
+            app:argType="string" />
+        <argument
+            android:name="imageBase64"
             app:argType="string" />
     </fragment>
 </navigation>

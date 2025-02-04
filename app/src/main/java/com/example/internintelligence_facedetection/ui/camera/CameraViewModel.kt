@@ -27,9 +27,9 @@ class CameraViewModel : ViewModel() {
             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
             detectFaces(image)
             val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-            Log.d("TAGdetect", "Rotation dərəcəsi: $rotationDegrees")
+            Log.d("TAGdetect", "Rotation degrees: $rotationDegrees")
         } else {
-            Log.e("TAGdetect", "Görüntü boşdur!")
+            Log.e("TAGdetect", "Image is empty!")
             imageProxy.close()
         }
     }
@@ -44,19 +44,19 @@ class CameraViewModel : ViewModel() {
         detector.process(image)
             .addOnSuccessListener { faces ->
                 if (faces.isNotEmpty()) {
-                    _detectedFaceCount.value = "Üz Tanındı: ${faces.size}"
+                    _detectedFaceCount.value = "Face Detected: ${faces.size}"
                     val boundingBox = faces[0].boundingBox
                     _faceBoundingBox.value = "$boundingBox"
-                    Log.d("TAGdetect", "Üzlər tapıldı: ${faces.size}")
+                    Log.d("TAGdetect", "Faces found: ${faces.size}")
                     faces.forEachIndexed { index, face ->
-                        Log.d("TAGdetect", "Üz $index: Box = ${face.boundingBox}")
+                        Log.d("TAGdetect", "Face $index: Box = ${face.boundingBox}")
                     }
                 } else {
-                    _detectedFaceCount.value = "Üz tanınmır."
+                    _detectedFaceCount.value = "No face detected."
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("TAGdetect", "Üz tanıma xətası: ${e.message}")
+                Log.e("TAGdetect", "Face detection error: ${e.message}")
             }
     }
 }

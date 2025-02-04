@@ -1,30 +1,34 @@
 package com.example.internintelligence_facedetection.ui.camera
 
+import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
-import android.Manifest
 import android.view.ViewGroup
-import androidx.annotation.OptIn
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.internintelligence_facedetection.databinding.FragmentCameraBinding
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class CameraFragment : Fragment() {
     private lateinit var binding: FragmentCameraBinding
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var previewView: PreviewView
-    private lateinit var cameraViewModel: CameraViewModel
+    private lateinit var imageCapture: ImageCapture
+    private val cameraViewModel: CameraViewModel by viewModels()
 
     companion object {
         const val REQUEST_CODE_CAMERA = 100
@@ -41,40 +45,35 @@ class CameraFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        cameraViewModel = ViewModelProvider(this).get(CameraViewModel::class.java)
-
-        cameraViewModel.detectedFaceCount.observe(viewLifecycleOwner) { faceCount ->
-            binding.tvDetectedFace.text = faceCount
-        }
-
-        cameraViewModel.faceBoundingBox.observe(viewLifecycleOwner) { boundingBox ->
-            val action = CameraFragmentDirections.actionCameraFragmentToResultFragment(boundingBox)
-            findNavController().navigate(action)
-        }
-
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf(Manifest.permission.CAMERA),
                 REQUEST_CODE_CAMERA
             )
         } else {
-            previewView = binding.previewView
             cameraExecutor = Executors.newSingleThreadExecutor()
             startCamera()
+        }
+
+        cameraViewModel.faceBoundingBox.observe(viewLifecycleOwner) { boundingBox ->
+            if (boundingBox.isNotEmpty()) {
+                takePhotoAndNavigate(boundingBox)
+            }
         }
     }
 
     private fun startCamera() {
-        Log.d("TAGdetect", "Kamera başlatılır...")
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
-            Log.d("TAGdetect", "Kamera Provider əldə edildi")
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(binding.previewView.surfaceProvider)
+            }
 
-            val preview = Preview.Builder().build()
-            preview.setSurfaceProvider(previewView.surfaceProvider)
+            imageCapture = ImageCapture.Builder().build()
 
             val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
@@ -90,28 +89,65 @@ class CameraFragment : Fragment() {
                 viewLifecycleOwner,
                 cameraSelector,
                 preview,
+                imageCapture,
                 imageAnalysis
             )
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    private fun takePhotoAndNavigate(boundingBox: String) {
+        val imageCapture = imageCapture ?: return
+
+        imageCapture.takePicture(
+            ContextCompat.getMainExecutor(requireContext()),
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val bitmap = imageToBitmap(image)
+                    val encodedImage = encodeImageToBase64(bitmap)
+                    image.close()
+
+                    val action = CameraFragmentDirections.actionCameraFragmentToResultFragment(
+                        boundingBox, encodedImage
+                    )
+                    findNavController().navigate(action)
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("CameraFragment", "İmage capture error: ${exception.message}")
+                }
+            }
+        )
+    }
+
+    private fun imageToBitmap(image: ImageProxy): Bitmap {
+        val buffer: ByteBuffer = image.planes[0].buffer
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    private fun encodeImageToBase64(bitmap: Bitmap): String {
+        val resizedBitmap = resizeBitmap(bitmap, 200)
+        val outputStream = ByteArrayOutputStream()
+
+        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 40, outputStream)
+
+        val byteArray = outputStream.toByteArray()
+        Log.d("ImageSize", "Image size (bayt): ${byteArray.size}")
+
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
+    }
+
+    private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int): Bitmap {
+        val aspectRatio = bitmap.height.toFloat() / bitmap.width.toFloat()
+        val height = (maxWidth * aspectRatio).toInt()
+        return Bitmap.createScaledBitmap(bitmap, maxWidth, height, true)
+    }
+
+
+
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_CAMERA) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                previewView = binding.previewView
-                cameraExecutor = Executors.newSingleThreadExecutor()
-                startCamera()
-            } else {
-                binding.tvDetectedFace.text = "Kamera icazəsi verilməyib."
-            }
-        }
     }
 }
