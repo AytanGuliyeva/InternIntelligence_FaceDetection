@@ -19,16 +19,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.internintelligence_facedetection.databinding.FragmentCameraBinding
-import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
 class CameraFragment : Fragment() {
     private lateinit var binding: FragmentCameraBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var imageCapture: ImageCapture
-    val cameraViewModel: CameraViewModel by viewModels()
+    private val cameraViewModel: CameraViewModel by viewModels()
 
     companion object {
         const val REQUEST_CODE_CAMERA = 100
