@@ -7,10 +7,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.internintelligence_facedetection.data.Users
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class FaceDatabaseViewModel : ViewModel() {
+@HiltViewModel
+class FaceDatabaseViewModel @Inject constructor(
+    val firestore: FirebaseFirestore,
+) : ViewModel() {
 
-    private val firestore = FirebaseFirestore.getInstance()
     private val _userList = MutableLiveData<List<Users>>()
     val userList: LiveData<List<Users>> get() = _userList
 

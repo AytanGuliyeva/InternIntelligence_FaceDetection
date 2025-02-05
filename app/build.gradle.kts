@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("androidx.navigation.safeargs.kotlin")
     id("com.google.gms.google-services")
+    id("com.google.dagger.hilt.android")
+    kotlin("kapt")
 }
 
 
@@ -43,6 +45,11 @@ android {
 
 dependencies {
 
+    //Dagger Hilt
+    implementation("com.google.dagger:hilt-android:2.50")
+    implementation("androidx.activity:activity:1.8.0")
+    kapt("com.google.dagger:hilt-android-compiler:2.50")
+
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
@@ -78,4 +85,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+kapt {
+    correctErrorTypes = true
 }

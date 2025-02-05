@@ -6,10 +6,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ResultViewModel : ViewModel() {
-
-    private val firestore = FirebaseFirestore.getInstance()
+@HiltViewModel
+class ResultViewModel @Inject constructor(
+    val firestore: FirebaseFirestore,
+) : ViewModel() {
 
     private val _saveResult = MutableLiveData<Boolean>()
     val saveResult: LiveData<Boolean> get() = _saveResult

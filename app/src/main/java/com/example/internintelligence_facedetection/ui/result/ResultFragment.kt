@@ -16,11 +16,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.internintelligence_facedetection.databinding.FragmentResultBinding
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ResultFragment : Fragment() {
     private lateinit var binding: FragmentResultBinding
     private val args: ResultFragmentArgs by navArgs()
-    private val viewModel: ResultViewModel by viewModels()
+    val viewModel: ResultViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

@@ -10,11 +10,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.internintelligence_facedetection.databinding.FragmentFaceDatabaseBinding
 import com.example.internintelligence_facedetection.ui.faceDatabase.adapter.UsersAdapter
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class FaceDatabaseFragment : Fragment() {
     private lateinit var binding: FragmentFaceDatabaseBinding
-    private val viewModel: FaceDatabaseViewModel by viewModels()
+    val viewModel: FaceDatabaseViewModel by viewModels()
     private lateinit var usersAdapter: UsersAdapter
 
     override fun onCreateView(
